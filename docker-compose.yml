@@ -1,0 +1,36 @@
+services:
+  # Matrix Synapse homeserver service
+  matrix:
+    image: matrixdotorg/synapse:latest
+    container_name: matrix
+    restart: unless-stopped
+    ports:
+      - "8008:8008"  # Matrix client-server API (for client connections)
+      - "8448:8448"  # Matrix federation API (for server-to-server communication)
+    volumes:
+      - ./config:/config  # Mount config directory
+      - ./data:/data     # Mount data directory for persistent storage
+      - ./config/log.config:/data/log.config
+    environment:
+      # Basic Synapse configuration
+      - SYNAPSE_SERVER_NAME=localhost  # The public-facing domain name
+      - SYNAPSE_REPORT_STATS=no          # Opt out of anonymous usage statistics
+      - SYNAPSE_CONFIG_DIR=/config         # Directory containing configuration files
+      - SYNAPSE_CONFIG_PATH=/config/homeserver.yaml  # Main configuration file path
+    user: "991:991"  # Synapse user and group
+    depends_on:
+      - postgres     # Ensure postgres starts before matrix
+
+  # PostgreSQL Database service
+  postgres:
+    image: postgres:13-alpine  # Using Alpine-based image for smaller size
+    container_name: matrix-postgres
+    restart: unless-stopped
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data  # Persistent database storage
+    environment:
+      # Database configuration
+      - POSTGRES_PASSWORD=matrix_dev_password_2024  # Database password (change in production)
+      - POSTGRES_USER=matrix                        # Database user
+      - POSTGRES_DB=matrix                          # Database name
+      - POSTGRES_INITDB_ARGS=--lc-collate=C --lc-ctype=C --encoding=UTF8  # UTF8 encoding for international support

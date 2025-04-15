@@ -1,0 +1,80 @@
+server_name: "localhost"
+pid_file: /data/homeserver.pid
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    resources:
+      - names: [client, federation]
+        compress: false
+
+database:
+  name: psycopg2
+  args:
+    user: matrix
+    password: matrix_dev_password_2024
+    database: matrix
+    host: postgres
+    port: 5432
+    cp_min: 5
+    cp_max: 10
+
+log_config: "/data/log.config"
+
+media_store_path: /data/media_store
+
+registration_shared_secret: "generate_a_secure_secret_here"
+
+report_stats: false
+
+enable_registration: true
+
+enable_registration_without_verification: true
+
+trusted_key_servers:
+  - server_name: "matrix.org"
+
+# JWT Configuration
+jwt_config:
+  enabled: true
+  secret: "dev_jwt_secret_key_123"  # Development secret key
+  algorithm: "HS256"
+  issuer: "matrix_dev_server"  # Development issuer
+  subject: "matrix_dev_client"
+
+# Uncomment to enable room directory
+#room_list_publication_rules:
+#  - action: allow
+#    alias: "*"
+#    room_id: "*"
+#    user_id: "*" 
+
+# # Add this section to your homeserver.yaml
+# rc_client:
+#   # Number of messages a client can send per second
+#   messages_per_second: 10.0
+#   # Number of message burst allowed for a client (before being limited)
+#   message_burst_count: 50.0
+  
+#   # Login-specific rate limiting
+#   login:
+#     address:
+#       per_second: 0.5  # One attempt every 2 seconds
+#       burst_count: 10  # Allow bursts of up to 10 attempts
+#     account:
+#       per_second: 0.5
+#       burst_count: 10
+#     failed_attempts:
+#       per_second: 0.5
+#       burst_count: 10
+
+#   # Registration rate limiting
+#   registration:
+#     per_second: 0.5
+#     burst_count: 10
+
+#   # General request rate limiting
+#   request:
+#     per_second: 5  # 5 requests per second
+#     burst_count: 25  # Allow bursts of up to 25 requests
