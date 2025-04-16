@@ -1,7 +1,0 @@
-FROM matrixdotorg/synapse:latest
-
-# Install Firebase Admin SDK
-RUN pip install firebase-admin
-
-# Create modules directory
-RUN mkdir -p /config/modules 
