@@ -11,6 +11,9 @@ services:
       - ./config:/config  # Mount config directory
       - ./data:/data     # Mount data directory for persistent storage
       - ./config/log.config:/data/log.config
+      - ./config/modules:/config/modules  # Mount modules directory
+      - ./config/entrypoint.sh:/entrypoint.sh  # Mount entrypoint script
+      - ./data/dev-firebase-credentials.json:/data/dev-firebase-credentials.json  # Mount Firebase credentials
     environment:
       # Basic Synapse configuration
       - SYNAPSE_SERVER_NAME=localhost  # The public-facing domain name
@@ -20,6 +23,7 @@ services:
     user: "991:991"  # Synapse user and group
     depends_on:
       - postgres     # Ensure postgres starts before matrix
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
 
   # PostgreSQL Database service
   postgres:

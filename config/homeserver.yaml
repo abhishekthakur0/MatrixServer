@@ -20,7 +20,7 @@ database:
     cp_min: 5
     cp_max: 10
 
-log_config: "/data/log.config"
+log_config: "/config/logging.yaml"
 
 media_store_path: /data/media_store
 
@@ -42,6 +42,17 @@ jwt_config:
   algorithm: "HS256"
   issuer: "matrix_dev_server"  # Development issuer
   subject: "matrix_dev_client"
+
+# Password Providers Configuration
+password_providers:
+  - module: "config.modules.firebase_auth.FirebaseAuthProvider"
+    config:
+      service_account_path: "/data/dev-firebase-credentials.json"
+
+# modules:
+#   - module: "config.modules.firebase_auth.FirebaseAuthProvider"
+#     config:
+#       service_account_path: "/data/dev-firebase-credentials.json"
 
 # Uncomment to enable room directory
 #room_list_publication_rules:
