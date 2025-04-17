@@ -35,6 +35,12 @@ enable_registration_without_verification: true
 trusted_key_servers:
   - server_name: "matrix.org"
 
+# Automatically accept invites for direct messages
+auto_accept_invites:
+    enabled: true
+    only_for_direct_messages: true
+
+
 # JWT Configuration
 jwt_config:
   enabled: true
@@ -49,10 +55,6 @@ password_providers:
     config:
       service_account_path: "/data/dev-firebase-credentials.json"
 
-# modules:
-#   - module: "config.modules.firebase_auth.FirebaseAuthProvider"
-#     config:
-#       service_account_path: "/data/dev-firebase-credentials.json"
 
 # Uncomment to enable room directory
 #room_list_publication_rules:
