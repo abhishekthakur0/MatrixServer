@@ -13,7 +13,7 @@ services:
       - ./config/log.config:/data/log.config
       - ./config/modules:/config/modules  # Mount modules directory
       - ./config/entrypoint.sh:/entrypoint.sh  # Mount entrypoint script
-      - ./data/dev-firebase-credentials.json:/data/dev-firebase-credentials.json  # Mount Firebase credentials
+      - ./config/dev-firebase-credentials.json:/data/dev-firebase-credentials.json  # Mount Firebase credentials
     environment:
       # Basic Synapse configuration
       - SYNAPSE_SERVER_NAME=localhost  # The public-facing domain name
