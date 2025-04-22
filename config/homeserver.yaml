@@ -95,11 +95,3 @@ password_providers:
 # Text Masking Module Configuration
 modules:
   - module: "config.modules.text_masker.TextMasker"
-    config:
-      abusive_words:
-        - "badword1"
-        - "badword2"
-        - "badword3"
-        - "curse1"
-        - "curse2"
-        # Add more abusive words as needed
