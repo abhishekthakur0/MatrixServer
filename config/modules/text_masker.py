@@ -1,6 +1,7 @@
 import re
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from synapse.module_api import ModuleApi
+from synapse.events import EventBase
 
 class TextMasker:
     def __init__(self, config: Dict, api: ModuleApi):
@@ -63,8 +64,19 @@ class TextMasker:
         masked_text = self.mask_abusive_words(masked_text)
         return masked_text
 
-    async def on_event(self, event, state):
-        """Handle incoming events and mask sensitive content."""
+    async def on_event(self, event: EventBase, state) -> Tuple[bool, Dict]:
+        """
+        Handle incoming events and mask sensitive content.
+        
+        Args:
+            event: The event to check
+            state: The state at the event
+            
+        Returns:
+            A tuple of (allowed, new_content)
+            - allowed: bool indicating whether the event should be allowed
+            - new_content: dict containing the new event content, or None if unchanged
+        """
         try:
             if event.type == "m.room.message" and event.content.get("msgtype") == "m.text":
                 original_content = event.content.get("body", "")
@@ -73,24 +85,19 @@ class TextMasker:
                 # Only modify the event if masking was applied
                 if masked_content != original_content:
                     # Create a new content dictionary that preserves all original fields
-                    new_content = {
-                        "msgtype": "m.text",
-                        "body": masked_content,
-                        "m.notice": "Some content has been masked for privacy and safety."
-                    }
-                    # Preserve any other fields from the original content
-                    for key, value in event.content.items():
-                        if key not in ["body", "m.notice"]:
-                            new_content[key] = value
+                    new_content = dict(event.content)
+                    new_content["body"] = masked_content
+                    new_content["m.notice"] = "Some content has been masked for privacy and safety."
                     
                     return True, new_content
             
-            # If no masking was needed, return the original content
-            return True, event.content
+            # If no masking was needed, return None to indicate no changes
+            return True, None
+            
         except Exception as e:
             self.api.logger.error(f"Error in text masking: {str(e)}")
-            # In case of error, return the original content
-            return True, event.content
+            # In case of error, allow the event but don't modify it
+            return True, None
 
 def create_module(config: Dict, api: ModuleApi):
     return TextMasker(config, api) 
