@@ -91,3 +91,15 @@ password_providers:
 #   request:
 #     per_second: 5  # 5 requests per second
 #     burst_count: 25  # Allow bursts of up to 25 requests
+
+# Text Masking Module Configuration
+modules:
+  - module: "config.modules.text_masker.TextMasker"
+    config:
+      abusive_words:
+        - "badword1"
+        - "badword2"
+        - "badword3"
+        - "curse1"
+        - "curse2"
+        # Add more abusive words as needed
