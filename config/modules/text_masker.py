@@ -65,17 +65,32 @@ class TextMasker:
 
     async def on_event(self, event, state):
         """Handle incoming events and mask sensitive content."""
-        if event.type == "m.room.message" and event.content.get("msgtype") == "m.text":
-            original_content = event.content.get("body", "")
-            masked_content = self.mask_text(original_content)
+        try:
+            if event.type == "m.room.message" and event.content.get("msgtype") == "m.text":
+                original_content = event.content.get("body", "")
+                masked_content = self.mask_text(original_content)
+                
+                # Only modify the event if masking was applied
+                if masked_content != original_content:
+                    # Create a new content dictionary that preserves all original fields
+                    new_content = {
+                        "msgtype": "m.text",
+                        "body": masked_content,
+                        "m.notice": "Some content has been masked for privacy and safety."
+                    }
+                    # Preserve any other fields from the original content
+                    for key, value in event.content.items():
+                        if key not in ["body", "m.notice"]:
+                            new_content[key] = value
+                    
+                    return True, new_content
             
-            # Only modify the event if masking was applied
-            if masked_content != original_content:
-                event.content["body"] = masked_content
-                # Add a notice that the message was modified
-                event.content["m.notice"] = "Some content has been masked for privacy and safety."
-        
-        return event
+            # If no masking was needed, return the original content
+            return True, event.content
+        except Exception as e:
+            self.api.logger.error(f"Error in text masking: {str(e)}")
+            # In case of error, return the original content
+            return True, event.content
 
 def create_module(config: Dict, api: ModuleApi):
     return TextMasker(config, api) 
