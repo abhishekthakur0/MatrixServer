@@ -89,8 +89,11 @@ class TextMasker:
                     new_content["body"] = masked_content
                     new_content["m.notice"] = "Some content has been masked for privacy and safety."
                     
-                    # Return the modified content
-                    return True, new_content
+                    # Return the modified content with the event type
+                    return True, {
+                        "type": event.type,
+                        "content": new_content
+                    }
             
             # If no masking was needed, return None to indicate no changes
             return True, None
