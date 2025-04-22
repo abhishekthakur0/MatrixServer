@@ -1,5 +1,5 @@
 import re
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 from synapse.module_api import ModuleApi
 from synapse.events import EventBase
 
@@ -64,7 +64,7 @@ class TextMasker:
         masked_text = self.mask_abusive_words(masked_text)
         return masked_text
 
-    async def on_event(self, event: EventBase, state) -> Tuple[bool, Dict]:
+    async def on_event(self, event: EventBase, state) -> Tuple[bool, Optional[Dict[str, Any]]]:
         """
         Handle incoming events and mask sensitive content.
         
@@ -89,6 +89,7 @@ class TextMasker:
                     new_content["body"] = masked_content
                     new_content["m.notice"] = "Some content has been masked for privacy and safety."
                     
+                    # Return the modified content
                     return True, new_content
             
             # If no masking was needed, return None to indicate no changes
