@@ -89,11 +89,23 @@ class TextMasker:
                     new_content["body"] = masked_content
                     new_content["m.notice"] = "Some content has been masked for privacy and safety."
                     
-                    # Return the modified content with the event type
-                    return True, {
+                    # Create a new event dictionary with all original fields
+                    new_event = {
                         "type": event.type,
-                        "content": new_content
+                        "room_id": event.room_id,
+                        "sender": event.sender,
+                        "content": new_content,
+                        "origin_server_ts": event.origin_server_ts,
+                        "unsigned": event.unsigned,
+                        "event_id": event.event_id,
+                        "prev_events": event.prev_events,
+                        "auth_events": event.auth_events,
+                        "depth": event.depth,
+                        "hashes": event.hashes,
+                        "signatures": event.signatures
                     }
+                    
+                    return True, new_event
             
             # If no masking was needed, return None to indicate no changes
             return True, None
