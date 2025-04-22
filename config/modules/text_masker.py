@@ -1,7 +1,11 @@
 import re
+import logging
 from typing import List, Dict, Optional, Tuple, Any
 from synapse.module_api import ModuleApi
 from synapse.events import EventBase
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 class TextMasker:
     def __init__(self, config: Dict, api: ModuleApi):
@@ -98,7 +102,7 @@ class TextMasker:
                         "origin_server_ts": event.origin_server_ts,
                         "unsigned": event.unsigned,
                         "event_id": event.event_id,
-                        "prev_events": event.prev_events,
+                        "prev_event_ids": event.prev_event_ids,
                         "auth_events": event.auth_events,
                         "depth": event.depth,
                         "hashes": event.hashes,
@@ -111,7 +115,7 @@ class TextMasker:
             return True, None
             
         except Exception as e:
-            self.api.logger.error(f"Error in text masking: {str(e)}")
+            logger.error(f"Error in text masking: {str(e)}")
             # In case of error, allow the event but don't modify it
             return True, None
 
