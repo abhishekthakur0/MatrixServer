@@ -117,23 +117,34 @@ class TextMasker:
                     new_content["m.notice"] = "Some content has been masked for privacy and safety."
                     
                     # Create a new event dictionary with all original fields
-                    new_event = {
-                        "type": event.type,
-                        "room_id": event.room_id,
-                        "sender": event.sender,
-                        "content": new_content,
-                        "origin_server_ts": event.origin_server_ts,
-                        "unsigned": event.unsigned,
-                        "event_id": event.event_id,
-                        "prev_event_ids": event.prev_event_ids,
-                        "auth_events": event.auth_events,
-                        "depth": event.depth,
-                        "hashes": event.hashes,
-                        "signatures": event.signatures
-                    }
-                    
-                    logger.info(f"Returning modified event for {event.event_id}")
-                    return True, new_event
+                    try:
+                        new_event = {
+                            "type": event.type,
+                            "room_id": event.room_id,
+                            "sender": event.sender,
+                            "content": new_content,
+                            "origin_server_ts": event.origin_server_ts,
+                            "unsigned": event.unsigned,
+                            "event_id": event.event_id,
+                            "prev_event_ids": event.prev_event_ids,
+                            "auth_event_ids": event.auth_event_ids,  # Fixed attribute name
+                            "depth": event.depth,
+                            "hashes": event.hashes,
+                            "signatures": event.signatures
+                        }
+                        
+                        logger.info(f"Successfully created new event for {event.event_id}")
+                        return True, new_event
+                    except AttributeError as e:
+                        logger.error(f"Error accessing event attribute: {str(e)}")
+                        logger.error("Falling back to minimal event structure")
+                        # Fallback to minimal event structure
+                        return True, {
+                            "type": event.type,
+                            "room_id": event.room_id,
+                            "sender": event.sender,
+                            "content": new_content
+                        }
                 else:
                     logger.debug("No sensitive content found, event unchanged")
             else:
