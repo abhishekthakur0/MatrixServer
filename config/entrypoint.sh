@@ -8,6 +8,7 @@ export PIP_CACHE_DIR=/data/pip-cache
 
 # Install dependencies in the user-writable directory
 pip install --target=/data/python-packages firebase-admin
+pip install --target=/data/python-packages aiohttp
 
 # Start Synapse
 exec /start.py 
