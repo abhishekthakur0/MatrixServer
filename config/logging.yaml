@@ -1,0 +1,37 @@
+version: 1
+
+formatters:
+    precise:
+        format: '%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(request)s - %(message)s'
+
+handlers:
+    console:
+        class: logging.StreamHandler
+        formatter: precise
+
+loggers:
+    synapse:
+        level: INFO
+        handlers: [console]
+
+    synapse.storage.SQL:
+        level: INFO
+        handlers: [console]
+
+    twisted:
+        level: INFO
+        handlers: [console]
+
+    # Add our Firebase auth module logger
+    config.modules.firebase_auth:
+        level: DEBUG
+        handlers: [console]
+        propagate: true
+    config.modules.text_masker:
+        level: DEBUG
+        handlers: [console]
+        propagate: true
+
+root:
+    level: INFO
+    handlers: [console] 
