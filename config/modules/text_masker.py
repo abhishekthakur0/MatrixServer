@@ -1,9 +1,10 @@
 import re
 import logging
-import aiohttp
 from typing import List, Dict, Optional, Tuple, Any
 from synapse.module_api import ModuleApi
 from synapse.events import EventBase
+import requests
+from twisted.internet import defer
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -15,14 +16,59 @@ class TextMasker:
         self.api = api
         self.config = config
         
-        # API endpoint configuration
-        self.mask_api_url = "http://localhost:5001/chat-mask" # TODO: change to the production endpoint
+        # API endpoint configuration with fallback
+        self.mask_api_url = config.get("mask_api_url", "<API_URL>")
+        logger.info(f"Using masking API at: {self.mask_api_url}")
+        
+        # Timeout configuration (in seconds)
+        self.timeout = config.get("timeout", 30)
+        
+        # Create a session for connection pooling
+        self.session = requests.Session()
         
         # Register the event handler
         api.register_third_party_rules_callbacks(
             check_event_allowed=self.on_event
         )
         logger.info("TextMasker module initialized successfully")
+
+    async def _make_request(self, text: str) -> str:
+        """Make the HTTP request to the masking API."""
+        try:
+            # Create form data
+            files = {'query': (None, text)}
+            
+            logger.debug(f"Making request to {self.mask_api_url} with data: {text[:50]}...")
+            
+            # Make the request using requests
+            response = self.session.post(
+                self.mask_api_url,
+                files=files,
+                headers={
+                    'Accept': '*/*',
+                    'User-Agent': 'Matrix-Synapse/1.0'
+                },
+                timeout=self.timeout
+            )
+            
+            logger.debug(f"Received response with status code: {response.status_code}")
+            
+            if response.status_code == 200:
+                content = response.text
+                logger.debug(f"Received content: {content[:100]}...")
+                return content
+            else:
+                logger.error(f"API request failed with status {response.status_code}. Response: {response.text}")
+                return text
+        except requests.Timeout:
+            logger.error(f"API request timed out after {self.timeout} seconds")
+            return text
+        except requests.RequestException as e:
+            logger.error(f"Failed to connect to masking API at {self.mask_api_url}: {str(e)}")
+            return text
+        except Exception as e:
+            logger.error(f"Error in HTTP request: {str(e)}", exc_info=True)
+            return text
 
     async def mask_text(self, text: str) -> str:
         """Apply masking using external API."""
@@ -33,22 +79,13 @@ class TextMasker:
         logger.info(f"Starting text masking process for text: {text[:50]}...")
         
         try:
-            async with aiohttp.ClientSession() as session:
-                form_data = aiohttp.FormData()
-                form_data.add_field('query', text)
-                
-                async with session.post(self.mask_api_url, data=form_data) as response:
-                    if response.status == 200:
-                        masked_text = await response.text()
-                        logger.info(f"Text masking completed. Original length: {len(text)}, Masked length: {len(masked_text)}")
-                        return masked_text
-                    else:
-                        logger.error(f"API request failed with status {response.status}")
-                        return text  # Return original text if API fails
-                        
+            masked_text = await self._make_request(text)
+            logger.info(f"Text masking completed. Original length: {len(text)}, Masked length: {len(masked_text)}")
+            return masked_text
+                    
         except Exception as e:
             logger.error(f"Error in text masking API call: {str(e)}", exc_info=True)
-            return text  # Return original text if there's an error
+            return text  # Return original text on error
 
     async def on_event(self, event: EventBase, state) -> Tuple[bool, Optional[Dict[str, Any]]]:
         """
